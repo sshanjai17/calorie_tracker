@@ -4,6 +4,8 @@ from . import models
 from .database import engine, get_db
 from pydantic import BaseModel, validator
 import datetime
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from .gemini import analyze_food_image
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -60,3 +62,22 @@ def delete_meal(meal_id: int, db: Session = Depends(get_db)):
     db.delete(meal)
     db.commit()
     return {"message": f"Meal {meal_id} deleted successfully"}
+
+
+@app.post("/meals/analyze")
+async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    image_bytes = await file.read()
+    nutrition = analyze_food_image(image_bytes, file.content_type)
+    
+    db_meal = models.Meal(
+        name=nutrition['name'],
+        calories=nutrition['calories'],
+        protein=nutrition['protein'],
+        carbs=nutrition['carbs'],
+        fat=nutrition['fat'],
+        date=datetime.date.today()
+    )
+    db.add(db_meal)
+    db.commit()
+    db.refresh(db_meal)
+    return db_meal
