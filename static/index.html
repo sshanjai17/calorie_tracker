@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calorie Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       * {
         margin: 0;
@@ -24,6 +25,12 @@
         text-align: center;
         margin-bottom: 2rem;
         color: #2d7a2d;
+      }
+      .summary-box {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
       }
       .upload-box {
         background: white;
@@ -143,11 +150,39 @@
         padding: 1rem;
         color: #666;
       }
+      .undo-bar {
+        display: none;
+        background: #333;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .undo-btn {
+        background: #ff6b35;
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>🥗 Calorie Tracker</h1>
+
+      <div class="summary-box">
+        <h2 style="color: #2d7a2d; margin-bottom: 1rem">Weekly Calories</h2>
+        <canvas id="weeklyChart" height="100"></canvas>
+      </div>
+
+      <div class="undo-bar" id="undoBar">
+        <span>Meal deleted</span>
+        <button class="undo-btn" onclick="undoDelete()">Undo</button>
+      </div>
 
       <div class="upload-box">
         <p>Upload a food photo to get instant nutrition info</p>
@@ -193,6 +228,8 @@
 
     <script>
       let selectedFile = null;
+      let deletedStack = [];
+      let chart = null;
 
       document
         .getElementById("fileInput")
@@ -213,28 +250,24 @@
 
       async function analyzeMeal() {
         if (!selectedFile) return;
-
         document.getElementById("loading").style.display = "block";
         document.getElementById("analyzeBtn").style.display = "none";
-
         const formData = new FormData();
         formData.append("file", selectedFile);
-
         try {
           const response = await fetch("http://127.0.0.1:8000/meals/analyze", {
             method: "POST",
             body: formData,
           });
           const data = await response.json();
-
           document.getElementById("foodName").textContent = data.name;
           document.getElementById("calories").textContent = data.calories;
           document.getElementById("protein").textContent = data.protein + "g";
           document.getElementById("carbs").textContent = data.carbs + "g";
           document.getElementById("fat").textContent = data.fat + "g";
           document.getElementById("resultBox").style.display = "block";
-
           loadMeals();
+          loadChart();
         } catch (err) {
           alert("Error analyzing food. Make sure the server is running.");
         } finally {
@@ -246,14 +279,12 @@
       async function loadMeals() {
         const response = await fetch("http://127.0.0.1:8000/meals");
         const meals = await response.json();
-
         const list = document.getElementById("mealsList");
         if (meals.length === 0) {
           list.innerHTML =
             '<p style="color:#999;text-align:center">No meals logged yet</p>';
           return;
         }
-
         list.innerHTML = meals
           .map(
             (meal) => `
@@ -264,7 +295,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span class="meal-cal">${meal.calories} cal</span>
-            <button class="delete-btn" onclick="deleteMeal(${meal.id})">Delete</button>
+            <button class="delete-btn" onclick="deleteMeal(${meal.id}, ${JSON.stringify(meal).replace(/"/g, "&quot;")})">Delete</button>
           </div>
         </div>
       `,
@@ -272,12 +303,68 @@
           .join("");
       }
 
-      async function deleteMeal(id) {
+      async function deleteMeal(id, meal) {
+        deletedStack.push(meal);
         await fetch(`http://127.0.0.1:8000/meals/${id}`, { method: "DELETE" });
         loadMeals();
+        loadChart();
+        const undoBar = document.getElementById("undoBar");
+        undoBar.style.display = "flex";
+        setTimeout(() => {
+          undoBar.style.display = "none";
+          deletedStack.pop();
+        }, 5000);
+      }
+
+      async function undoDelete() {
+        if (deletedStack.length === 0) return;
+        const meal = deletedStack.pop();
+        await fetch("http://127.0.0.1:8000/meals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: meal.name,
+            calories: meal.calories,
+            protein: meal.protein,
+            carbs: meal.carbs,
+            fat: meal.fat,
+          }),
+        });
+        document.getElementById("undoBar").style.display = "none";
+        loadMeals();
+        loadChart();
+      }
+
+      async function loadChart() {
+        const response = await fetch("http://127.0.0.1:8000/meals/summary");
+        const data = await response.json();
+        const labels = data.map((d) => d.date);
+        const values = data.map((d) => d.calories);
+        if (chart) chart.destroy();
+        const ctx = document.getElementById("weeklyChart").getContext("2d");
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Calories",
+                data: values,
+                backgroundColor: "#2d7a2d",
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
+          },
+        });
       }
 
       loadMeals();
+      loadChart();
     </script>
   </body>
 </html>

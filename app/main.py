@@ -8,7 +8,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from .gemini import analyze_food_image
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-
+from sqlalchemy import func
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -60,7 +60,19 @@ def add_meal(meal: MealCreate, db: Session = Depends(get_db)):
 def get_meals(db: Session = Depends(get_db)):
     meals = db.query(models.Meal).all()
     return meals
-
+@app.get("/meals/summary")
+def get_summary(db: Session = Depends(get_db)):
+    today = datetime.date.today()
+    week_ago = today - datetime.timedelta(days=6)
+    
+    daily_totals = db.query(
+        models.Meal.date,
+        func.sum(models.Meal.calories).label('total_calories')
+    ).filter(
+        models.Meal.date >= week_ago
+    ).group_by(models.Meal.date).all()
+    
+    return [{"date": str(row.date), "calories": row.total_calories} for row in daily_totals]
 @app.delete("/meals/{meal_id}")
 def delete_meal(meal_id: int, db: Session = Depends(get_db)):
     meal = db.query(models.Meal).filter(models.Meal.id == meal_id).first()
@@ -88,3 +100,4 @@ async def analyze_meal(file: UploadFile = File(...), db: Session = Depends(get_d
     db.commit()
     db.refresh(db_meal)
     return db_meal
+
