@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from . import models
 from .database import engine, get_db
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 import datetime
 
 models.Base.metadata.create_all(bind=engine)
@@ -15,6 +15,18 @@ class MealCreate(BaseModel):
     protein: float = 0
     carbs: float = 0
     fat: float = 0
+
+    @validator('name')
+    def name_must_not_be_empty(cls, v):
+        if not v.strip():
+            raise ValueError('Name cannot be empty')
+        return v
+
+    @validator('calories')
+    def calories_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('Calories must be greater than 0')
+        return v
 
 @app.get("/")
 def root():
@@ -39,3 +51,12 @@ def add_meal(meal: MealCreate, db: Session = Depends(get_db)):
 def get_meals(db: Session = Depends(get_db)):
     meals = db.query(models.Meal).all()
     return meals
+
+@app.delete("/meals/{meal_id}")
+def delete_meal(meal_id: int, db: Session = Depends(get_db)):
+    meal = db.query(models.Meal).filter(models.Meal.id == meal_id).first()
+    if not meal:
+        raise HTTPException(status_code=404, detail="Meal not found")
+    db.delete(meal)
+    db.commit()
+    return {"message": f"Meal {meal_id} deleted successfully"}
