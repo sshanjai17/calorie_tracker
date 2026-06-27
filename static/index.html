@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calorie Tracker</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #2d7a2d;
+      }
+      .upload-box {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        border: 2px dashed #2d7a2d;
+        margin-bottom: 2rem;
+      }
+      .upload-box input {
+        display: none;
+      }
+      .upload-btn {
+        background: #2d7a2d;
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 1rem 0;
+        display: inline-block;
+      }
+      .upload-btn:hover {
+        background: #1f5c1f;
+      }
+      #preview {
+        max-width: 300px;
+        max-height: 300px;
+        margin: 1rem auto;
+        display: none;
+        border-radius: 8px;
+      }
+      .analyze-btn {
+        background: #ff6b35;
+        color: white;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        display: none;
+      }
+      .analyze-btn:hover {
+        background: #e55a26;
+      }
+      .result-box {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: none;
+      }
+      .result-box h2 {
+        margin-bottom: 1rem;
+        color: #2d7a2d;
+      }
+      .macros {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+      }
+      .macro-card {
+        background: #f0f9f0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+      }
+      .macro-card .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d7a2d;
+      }
+      .macro-card .label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
+      }
+      .meals-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+      }
+      .meals-section h2 {
+        margin-bottom: 1rem;
+        color: #2d7a2d;
+      }
+      .meal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+      }
+      .meal-item:last-child {
+        border-bottom: none;
+      }
+      .meal-name {
+        font-weight: 500;
+      }
+      .meal-cal {
+        color: #ff6b35;
+        font-weight: bold;
+      }
+      .delete-btn {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 1rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🥗 Calorie Tracker</h1>
+
+      <div class="upload-box">
+        <p>Upload a food photo to get instant nutrition info</p>
+        <label class="upload-btn" for="fileInput">📷 Choose Photo</label>
+        <input type="file" id="fileInput" accept="image/*" />
+        <br />
+        <img id="preview" alt="Food preview" />
+        <br />
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeMeal()">
+          Analyze Food
+        </button>
+      </div>
+
+      <div class="result-box" id="resultBox">
+        <h2 id="foodName">Food Name</h2>
+        <div class="macros">
+          <div class="macro-card">
+            <div class="value" id="calories">0</div>
+            <div class="label">Calories</div>
+          </div>
+          <div class="macro-card">
+            <div class="value" id="protein">0g</div>
+            <div class="label">Protein</div>
+          </div>
+          <div class="macro-card">
+            <div class="value" id="carbs">0g</div>
+            <div class="label">Carbs</div>
+          </div>
+          <div class="macro-card">
+            <div class="value" id="fat">0g</div>
+            <div class="label">Fat</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">⏳ Analyzing your food...</div>
+
+      <div class="meals-section">
+        <h2>Today's Meals</h2>
+        <div id="mealsList"></div>
+      </div>
+    </div>
+
+    <script>
+      let selectedFile = null;
+
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", function (e) {
+          selectedFile = e.target.files[0];
+          if (selectedFile) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const preview = document.getElementById("preview");
+              preview.src = e.target.result;
+              preview.style.display = "block";
+              document.getElementById("analyzeBtn").style.display =
+                "inline-block";
+            };
+            reader.readAsDataURL(selectedFile);
+          }
+        });
+
+      async function analyzeMeal() {
+        if (!selectedFile) return;
+
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("analyzeBtn").style.display = "none";
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+          const response = await fetch("http://127.0.0.1:8000/meals/analyze", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+
+          document.getElementById("foodName").textContent = data.name;
+          document.getElementById("calories").textContent = data.calories;
+          document.getElementById("protein").textContent = data.protein + "g";
+          document.getElementById("carbs").textContent = data.carbs + "g";
+          document.getElementById("fat").textContent = data.fat + "g";
+          document.getElementById("resultBox").style.display = "block";
+
+          loadMeals();
+        } catch (err) {
+          alert("Error analyzing food. Make sure the server is running.");
+        } finally {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("analyzeBtn").style.display = "inline-block";
+        }
+      }
+
+      async function loadMeals() {
+        const response = await fetch("http://127.0.0.1:8000/meals");
+        const meals = await response.json();
+
+        const list = document.getElementById("mealsList");
+        if (meals.length === 0) {
+          list.innerHTML =
+            '<p style="color:#999;text-align:center">No meals logged yet</p>';
+          return;
+        }
+
+        list.innerHTML = meals
+          .map(
+            (meal) => `
+        <div class="meal-item">
+          <div>
+            <div class="meal-name">${meal.name}</div>
+            <div style="font-size:12px;color:#999">${meal.protein}g protein · ${meal.carbs}g carbs · ${meal.fat}g fat</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="meal-cal">${meal.calories} cal</span>
+            <button class="delete-btn" onclick="deleteMeal(${meal.id})">Delete</button>
+          </div>
+        </div>
+      `,
+          )
+          .join("");
+      }
+
+      async function deleteMeal(id) {
+        await fetch(`http://127.0.0.1:8000/meals/${id}`, { method: "DELETE" });
+        loadMeals();
+      }
+
+      loadMeals();
+    </script>
+  </body>
+</html>

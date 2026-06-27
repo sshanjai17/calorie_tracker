@@ -6,10 +6,17 @@ from pydantic import BaseModel, validator
 import datetime
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from .gemini import analyze_food_image
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/ui")
+def serve_ui():
+    return FileResponse("static/index.html")
 
 class MealCreate(BaseModel):
     name: str
