@@ -6,176 +6,96 @@
     <title>Calorie Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        color: #333;
-      }
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-      h1 {
-        text-align: center;
-        margin-bottom: 2rem;
-        color: #2d7a2d;
-      }
-      .summary-box {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-      }
-      .upload-box {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        border: 2px dashed #2d7a2d;
-        margin-bottom: 2rem;
-      }
-      .upload-box input {
-        display: none;
-      }
-      .upload-btn {
-        background: #2d7a2d;
-        color: white;
-        padding: 10px 24px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        margin: 1rem 0;
-        display: inline-block;
-      }
-      .upload-btn:hover {
-        background: #1f5c1f;
-      }
-      #preview {
-        max-width: 300px;
-        max-height: 300px;
-        margin: 1rem auto;
-        display: none;
-        border-radius: 8px;
-      }
-      .analyze-btn {
-        background: #ff6b35;
-        color: white;
-        padding: 12px 32px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        display: none;
-      }
-      .analyze-btn:hover {
-        background: #e55a26;
-      }
-      .result-box {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        display: none;
-      }
-      .result-box h2 {
-        margin-bottom: 1rem;
-        color: #2d7a2d;
-      }
-      .macros {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-      }
-      .macro-card {
-        background: #f0f9f0;
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-      }
-      .macro-card .value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2d7a2d;
-      }
-      .macro-card .label {
-        font-size: 12px;
-        color: #666;
-        margin-top: 4px;
-      }
-      .meals-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-      }
-      .meals-section h2 {
-        margin-bottom: 1rem;
-        color: #2d7a2d;
-      }
-      .meal-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
-      }
-      .meal-item:last-child {
-        border-bottom: none;
-      }
-      .meal-name {
-        font-weight: 500;
-      }
-      .meal-cal {
-        color: #ff6b35;
-        font-weight: bold;
-      }
-      .delete-btn {
-        background: #ff4444;
-        color: white;
-        border: none;
-        padding: 4px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 12px;
-      }
-      .loading {
-        display: none;
-        text-align: center;
-        padding: 1rem;
-        color: #666;
-      }
-      .undo-bar {
-        display: none;
-        background: #333;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .undo-btn {
-        background: #ff6b35;
-        color: white;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; }
+      .container { max-width: 860px; margin: 0 auto; padding: 2rem; }
+      h1 { text-align: center; margin-bottom: 2rem; color: #2d7a2d; }
+
+      .goal-box { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+      .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+      .goal-title { font-size: 16px; font-weight: bold; color: #2d7a2d; }
+      .goal-edit { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+      .goal-input { width: 80px; padding: 4px 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center; outline: none; }
+      .goal-input:focus { border-color: #2d7a2d; }
+      .progress-bar-bg { background: #eee; border-radius: 20px; height: 22px; overflow: hidden; }
+      .progress-bar-fill { background: #2d7a2d; height: 100%; border-radius: 20px; transition: width 0.4s; min-width: 0; }
+      .progress-bar-fill.over { background: #e44; }
+      .progress-text { margin-top: 6px; font-size: 13px; color: #666; text-align: right; }
+
+      .summary-box { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+      .summary-box h2 { color: #2d7a2d; margin-bottom: 1rem; }
+
+      .undo-bar { display: none; background: #333; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 1rem; justify-content: space-between; align-items: center; }
+      .undo-btn { background: #ff6b35; color: white; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; }
+
+      .tabs { display: flex; gap: 0; border-bottom: 2px solid #2d7a2d; margin-bottom: 0; }
+      .tab-btn { padding: 10px 28px; border: none; background: #eee; color: #666; cursor: pointer; font-size: 15px; font-weight: 500; border-radius: 8px 8px 0 0; transition: background 0.2s; }
+      .tab-btn.active { background: #2d7a2d; color: white; }
+      .tab-panel { background: white; border-radius: 0 12px 12px 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+
+      .input-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+      .food-input { flex: 1; min-width: 180px; padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+      .food-input:focus { border-color: #2d7a2d; }
+      .qty-input { width: 90px; padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+      .qty-input:focus { border-color: #2d7a2d; }
+      .analyze-btn { background: #ff6b35; color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; white-space: nowrap; }
+      .analyze-btn:hover { background: #e55a26; }
+      .analyze-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+      .result-box { background: #f0f9f0; border-radius: 10px; padding: 1.2rem 1.5rem; margin-top: 1rem; display: none; }
+      .result-box h3 { margin-bottom: 0.75rem; color: #2d7a2d; }
+      .macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      .macro-card { background: white; border-radius: 8px; padding: 1rem; text-align: center; }
+      .macro-card .value { font-size: 22px; font-weight: bold; color: #2d7a2d; }
+      .macro-card .label { font-size: 12px; color: #666; margin-top: 4px; }
+
+      .loading { display: none; text-align: center; padding: 0.75rem; color: #666; font-size: 14px; }
+
+      .menu-controls { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.2rem; }
+      .menu-select { padding: 8px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+      .menu-select:focus { border-color: #2d7a2d; }
+      .meal-type-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+      .mt-btn { padding: 7px 18px; border: 2px solid #2d7a2d; background: white; color: #2d7a2d; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; }
+      .mt-btn.active { background: #2d7a2d; color: white; }
+      .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 10px; }
+      .menu-item-card { background: #f9f9f9; border-radius: 10px; padding: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
+      .menu-item-name { font-weight: 600; font-size: 14px; }
+      .menu-item-cal { color: #ff6b35; font-size: 13px; font-weight: bold; }
+      .menu-item-macros { color: #999; font-size: 11px; }
+      .add-menu-btn { background: #2d7a2d; color: white; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; margin-top: 6px; align-self: flex-start; }
+      .add-menu-btn:hover { background: #235f23; }
+      .add-menu-btn.added { background: #888; cursor: default; }
+
+      .meals-section { background: white; border-radius: 12px; padding: 1.5rem; }
+      .meals-section h2 { margin-bottom: 1rem; color: #2d7a2d; }
+      .meal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+      .meal-item:last-child { border-bottom: none; }
+      .meal-name { font-weight: 500; }
+      .meal-cal { color: #ff6b35; font-weight: bold; }
+      .delete-btn { background: #ff4444; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>🥗 Calorie Tracker</h1>
 
+      <div class="goal-box">
+        <div class="goal-header">
+          <span class="goal-title">Today's Progress</span>
+          <div class="goal-edit">
+            <label for="goalInput">Goal:</label>
+            <input type="number" id="goalInput" class="goal-input" min="500" max="9999" step="50" value="2000" oninput="saveGoal()" />
+            <span>kcal</span>
+          </div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">0 / 2000 kcal</div>
+      </div>
+
       <div class="summary-box">
-        <h2 style="color: #2d7a2d; margin-bottom: 1rem">Weekly Calories</h2>
+        <h2>Weekly Calories</h2>
         <canvas id="weeklyChart" height="100"></canvas>
       </div>
 
@@ -184,41 +104,56 @@
         <button class="undo-btn" onclick="undoDelete()">Undo</button>
       </div>
 
-      <div class="upload-box">
-        <p>Upload a food photo to get instant nutrition info</p>
-        <label class="upload-btn" for="fileInput">📷 Choose Photo</label>
-        <input type="file" id="fileInput" accept="image/*" />
-        <br />
-        <img id="preview" alt="Food preview" />
-        <br />
-        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeMeal()">
-          Analyze Food
-        </button>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('addMeal', this)">Add Meal</button>
+        <button class="tab-btn" onclick="switchTab('iithMenu', this)">IITH Mess Menu</button>
       </div>
 
-      <div class="result-box" id="resultBox">
-        <h2 id="foodName">Food Name</h2>
-        <div class="macros">
-          <div class="macro-card">
-            <div class="value" id="calories">0</div>
-            <div class="label">Calories</div>
-          </div>
-          <div class="macro-card">
-            <div class="value" id="protein">0g</div>
-            <div class="label">Protein</div>
-          </div>
-          <div class="macro-card">
-            <div class="value" id="carbs">0g</div>
-            <div class="label">Carbs</div>
-          </div>
-          <div class="macro-card">
-            <div class="value" id="fat">0g</div>
-            <div class="label">Fat</div>
+      <div class="tab-panel" id="tab-addMeal">
+        <h2 style="color:#2d7a2d;margin-bottom:1rem">Log a Meal</h2>
+        <div class="input-row">
+          <input
+            type="text"
+            id="foodInput"
+            class="food-input"
+            placeholder="Food name (e.g. Rice, Masala Dosa)"
+            onkeydown="if(event.key==='Enter') analyzeMeal()"
+          />
+          <input type="number" id="qtyInput" class="qty-input" placeholder="Qty" value="1" min="0.1" step="0.1" />
+          <button class="analyze-btn" id="analyzeBtn" onclick="analyzeMeal()">Add Meal</button>
+        </div>
+        <div class="loading" id="loading">⏳ Looking up nutrition info...</div>
+        <div class="result-box" id="resultBox">
+          <h3 id="foodName">Food Name</h3>
+          <div class="macros">
+            <div class="macro-card"><div class="value" id="calories">0</div><div class="label">Calories</div></div>
+            <div class="macro-card"><div class="value" id="protein">0g</div><div class="label">Protein</div></div>
+            <div class="macro-card"><div class="value" id="carbs">0g</div><div class="label">Carbs</div></div>
+            <div class="macro-card"><div class="value" id="fat">0g</div><div class="label">Fat</div></div>
           </div>
         </div>
       </div>
 
-      <div class="loading" id="loading">⏳ Analyzing your food...</div>
+      <div class="tab-panel" id="tab-iithMenu" style="display:none">
+        <div class="menu-controls">
+          <select id="menuDay" class="menu-select" onchange="loadMenu()">
+            <option value="sunday">Sunday</option>
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="wednesday">Wednesday</option>
+            <option value="thursday">Thursday</option>
+            <option value="friday">Friday</option>
+            <option value="saturday">Saturday</option>
+          </select>
+          <div class="meal-type-tabs">
+            <button class="mt-btn active" onclick="setMealType('breakfast', this)">Breakfast</button>
+            <button class="mt-btn" onclick="setMealType('lunch', this)">Lunch</button>
+            <button class="mt-btn" onclick="setMealType('dinner', this)">Dinner</button>
+            <button class="mt-btn" onclick="setMealType('snacks', this)">Snacks</button>
+          </div>
+        </div>
+        <div class="menu-grid" id="menuGrid"></div>
+      </div>
 
       <div class="meals-section">
         <h2>Today's Meals</h2>
@@ -227,139 +162,195 @@
     </div>
 
     <script>
-      let selectedFile = null;
       let deletedStack = [];
       let chart = null;
+      let activeMealType = 'breakfast';
 
-      document
-        .getElementById("fileInput")
-        .addEventListener("change", function (e) {
-          selectedFile = e.target.files[0];
-          if (selectedFile) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              const preview = document.getElementById("preview");
-              preview.src = e.target.result;
-              preview.style.display = "block";
-              document.getElementById("analyzeBtn").style.display =
-                "inline-block";
-            };
-            reader.readAsDataURL(selectedFile);
-          }
-        });
+      const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+      document.getElementById('menuDay').value = days[new Date().getDay()];
 
-      async function analyzeMeal() {
-        if (!selectedFile) return;
-        document.getElementById("loading").style.display = "block";
-        document.getElementById("analyzeBtn").style.display = "none";
-        const formData = new FormData();
-        formData.append("file", selectedFile);
+      const savedGoal = localStorage.getItem('calorieGoal');
+      if (savedGoal) document.getElementById('goalInput').value = savedGoal;
+
+      function saveGoal() {
+        localStorage.setItem('calorieGoal', document.getElementById('goalInput').value);
+        updateProgress();
+      }
+
+      function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tabId).style.display = 'block';
+        btn.classList.add('active');
+        if (tabId === 'iithMenu') loadMenu();
+      }
+
+      function setMealType(type, btn) {
+        activeMealType = type;
+        document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadMenu();
+      }
+
+      async function loadMenu() {
+        const day = document.getElementById('menuDay').value;
+        const grid = document.getElementById('menuGrid');
+        grid.innerHTML = '<p style="color:#999;padding:1rem">Loading...</p>';
         try {
-          const response = await fetch("http://127.0.0.1:8000/meals/analyze", {
-            method: "POST",
-            body: formData,
+          const res = await fetch(`/menu/${day}/${activeMealType}`);
+          const items = await res.json();
+          if (!items.length) {
+            grid.innerHTML = '<p style="color:#999;padding:1rem">No items found.</p>';
+            return;
+          }
+          grid.innerHTML = items.map((item, i) => `
+            <div class="menu-item-card">
+              <div class="menu-item-name">${item.name}</div>
+              <div class="menu-item-cal">${item.calories} kcal</div>
+              <div class="menu-item-macros">${item.protein}g protein · ${item.carbs}g carbs · ${item.fat}g fat</div>
+              <button class="add-menu-btn" id="mbtn-${i}" onclick="addMenuItem(${i}, ${JSON.stringify(item).replace(/"/g, '&quot;')})">+ Add</button>
+            </div>
+          `).join('');
+        } catch {
+          grid.innerHTML = '<p style="color:#e44">Failed to load menu.</p>';
+        }
+      }
+
+      async function addMenuItem(idx, item) {
+        const btn = document.getElementById('mbtn-' + idx);
+        btn.disabled = true;
+        btn.classList.add('added');
+        btn.textContent = 'Added!';
+        try {
+          await fetch('/meals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: item.name, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat })
           });
-          const data = await response.json();
-          document.getElementById("foodName").textContent = data.name;
-          document.getElementById("calories").textContent = data.calories;
-          document.getElementById("protein").textContent = data.protein + "g";
-          document.getElementById("carbs").textContent = data.carbs + "g";
-          document.getElementById("fat").textContent = data.fat + "g";
-          document.getElementById("resultBox").style.display = "block";
           loadMeals();
           loadChart();
-        } catch (err) {
-          alert("Error analyzing food. Make sure the server is running.");
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.classList.remove('added');
+            btn.textContent = '+ Add';
+          }, 2000);
+        } catch {
+          btn.disabled = false;
+          btn.classList.remove('added');
+          btn.textContent = '+ Add';
+        }
+      }
+
+      async function analyzeMeal() {
+        const foodName = document.getElementById('foodInput').value.trim();
+        const qty = parseFloat(document.getElementById('qtyInput').value) || 1;
+        if (!foodName) { alert('Please enter a food name.'); return; }
+        const btn = document.getElementById('analyzeBtn');
+        btn.disabled = true;
+        document.getElementById('loading').style.display = 'block';
+        try {
+          const res = await fetch(`/meals/analyze?food_name=${encodeURIComponent(foodName)}&quantity=${qty}`, { method: 'POST' });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          document.getElementById('foodName').textContent = data.name;
+          document.getElementById('calories').textContent = data.calories;
+          document.getElementById('protein').textContent = data.protein + 'g';
+          document.getElementById('carbs').textContent = data.carbs + 'g';
+          document.getElementById('fat').textContent = data.fat + 'g';
+          document.getElementById('resultBox').style.display = 'block';
+          document.getElementById('foodInput').value = '';
+          document.getElementById('qtyInput').value = '1';
+          loadMeals();
+          loadChart();
+        } catch {
+          alert('Error adding meal. Make sure the server is running.');
         } finally {
-          document.getElementById("loading").style.display = "none";
-          document.getElementById("analyzeBtn").style.display = "inline-block";
+          document.getElementById('loading').style.display = 'none';
+          btn.disabled = false;
         }
       }
 
       async function loadMeals() {
-        const response = await fetch("http://127.0.0.1:8000/meals");
-        const meals = await response.json();
-        const list = document.getElementById("mealsList");
-        if (meals.length === 0) {
-          list.innerHTML =
-            '<p style="color:#999;text-align:center">No meals logged yet</p>';
+        const res = await fetch('/meals');
+        const allMeals = await res.json();
+        const today = new Date().toISOString().slice(0, 10);
+        const meals = allMeals.filter(m => m.date === today);
+        const list = document.getElementById('mealsList');
+        if (!meals.length) {
+          list.innerHTML = '<p style="color:#999;text-align:center">No meals logged today</p>';
+          updateProgress(0);
           return;
         }
-        list.innerHTML = meals
-          .map(
-            (meal) => `
-        <div class="meal-item">
-          <div>
-            <div class="meal-name">${meal.name}</div>
-            <div style="font-size:12px;color:#999">${meal.protein}g protein · ${meal.carbs}g carbs · ${meal.fat}g fat</div>
+        list.innerHTML = meals.map(meal => `
+          <div class="meal-item">
+            <div>
+              <div class="meal-name">${meal.name}</div>
+              <div style="font-size:12px;color:#999">${meal.protein}g protein · ${meal.carbs}g carbs · ${meal.fat}g fat</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="meal-cal">${meal.calories} cal</span>
+              <button class="delete-btn" onclick="deleteMeal(${meal.id}, ${JSON.stringify(meal).replace(/"/g, '&quot;')})">Delete</button>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span class="meal-cal">${meal.calories} cal</span>
-            <button class="delete-btn" onclick="deleteMeal(${meal.id}, ${JSON.stringify(meal).replace(/"/g, "&quot;")})">Delete</button>
-          </div>
-        </div>
-      `,
-          )
-          .join("");
+        `).join('');
+        const total = meals.reduce((sum, m) => sum + m.calories, 0);
+        updateProgress(total);
+      }
+
+      function updateProgress(total) {
+        if (total === undefined) return;
+        const goal = parseInt(document.getElementById('goalInput').value) || 2000;
+        const pct = Math.min((total / goal) * 100, 100);
+        const fill = document.getElementById('progressFill');
+        fill.style.width = pct + '%';
+        fill.className = 'progress-bar-fill' + (total > goal ? ' over' : '');
+        document.getElementById('progressText').textContent = `${Math.round(total)} / ${goal} kcal`;
       }
 
       async function deleteMeal(id, meal) {
         deletedStack.push(meal);
-        await fetch(`http://127.0.0.1:8000/meals/${id}`, { method: "DELETE" });
+        await fetch(`/meals/${id}`, { method: 'DELETE' });
         loadMeals();
         loadChart();
-        const undoBar = document.getElementById("undoBar");
-        undoBar.style.display = "flex";
+        const undoBar = document.getElementById('undoBar');
+        undoBar.style.display = 'flex';
         setTimeout(() => {
-          undoBar.style.display = "none";
+          undoBar.style.display = 'none';
           deletedStack.pop();
         }, 5000);
       }
 
       async function undoDelete() {
-        if (deletedStack.length === 0) return;
+        if (!deletedStack.length) return;
         const meal = deletedStack.pop();
-        await fetch("http://127.0.0.1:8000/meals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: meal.name,
-            calories: meal.calories,
-            protein: meal.protein,
-            carbs: meal.carbs,
-            fat: meal.fat,
-          }),
+        await fetch('/meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: meal.name, calories: meal.calories, protein: meal.protein, carbs: meal.carbs, fat: meal.fat })
         });
-        document.getElementById("undoBar").style.display = "none";
+        document.getElementById('undoBar').style.display = 'none';
         loadMeals();
         loadChart();
       }
 
       async function loadChart() {
-        const response = await fetch("http://127.0.0.1:8000/meals/summary");
-        const data = await response.json();
-        const labels = data.map((d) => d.date);
-        const values = data.map((d) => d.calories);
+        const res = await fetch('/meals/summary');
+        const data = await res.json();
+        const labels = data.map(d => d.date);
+        const values = data.map(d => d.calories);
         if (chart) chart.destroy();
-        const ctx = document.getElementById("weeklyChart").getContext("2d");
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
         chart = new Chart(ctx, {
-          type: "bar",
+          type: 'bar',
           data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "Calories",
-                data: values,
-                backgroundColor: "#2d7a2d",
-                borderRadius: 6,
-              },
-            ],
+            labels,
+            datasets: [{ label: 'Calories', data: values, backgroundColor: '#2d7a2d', borderRadius: 6 }]
           },
           options: {
             responsive: true,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } },
-          },
+            scales: { y: { beginAtZero: true } }
+          }
         });
       }
 
